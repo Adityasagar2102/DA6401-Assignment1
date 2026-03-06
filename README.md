@@ -9,9 +9,13 @@
 
 ---
 
+## GitHub Repository
+
+- **you can find the complete project on**: [GitHub](https://github.com/Adityasagar2102/DA6401-Assignment1)
+
 ## Weights & Biases Report
 
-- **Public Report Link**: [Click here to view the W&B Report](INSERT_YOUR_URL_HERE)
+- **Public Report Link**: [W&B Report](INSERT_YOUR_URL_HERE)
 
 ## Project Overview
 

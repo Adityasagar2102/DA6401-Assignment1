@@ -1,7 +1,0 @@
-Epoch 1, Validation Accuracy: 0.8830
-Traceback (most recent call last):
-  File "D:\aditya\M-Tech_IITM\SEM2\DA-DL DA6401\CS25M006_Assignment-1\da6401_assignment_1\src\train.py", line 169, in <module>
-    main()
-  File "D:\aditya\M-Tech_IITM\SEM2\DA-DL DA6401\CS25M006_Assignment-1\da6401_assignment_1\src\train.py", line 104, in main
-    "test_f1": test_f1,
-UnboundLocalError: local variable 'test_f1' referenced before assignment
