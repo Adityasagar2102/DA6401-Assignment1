@@ -1,0 +1,1 @@
+{"columns": ["Optimizer", "Train Accuracy", "Test Accuracy"], "data": [["SGD", 0.91, 0.88], ["Momentum", 0.95, 0.94], ["NAG", 0.96, 0.95], ["RMSProp", 0.985, 0.977], ["Adam", 0.986, 0.978], ["Nadam", 0.987, 0.98], ["CrossEntropy", 0.98, 0.975], ["MSE", 0.96, 0.94]]}

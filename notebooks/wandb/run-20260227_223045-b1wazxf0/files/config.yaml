@@ -1,0 +1,59 @@
+_wandb:
+    value:
+        cli_version: 0.25.0
+        e:
+            lt9l94wdj2qakvj2miysj9y6807svahc:
+                codePath: Untitled.ipynb
+                codePathLocal: Untitled.ipynb
+                cpu_count: 4
+                cpu_count_logical: 8
+                cudaVersion: "13.0"
+                disk:
+                    /:
+                        total: "314571747328"
+                        used: "163539083264"
+                email: cs25m006@smail.iitm.ac.in
+                executable: D:\aditya\Anaconda3\python.exe
+                git:
+                    commit: ef798049bfcd1db80d4ec4589f04961f33ac3552
+                    remote: https://github.com/MiRL-IITM/da6401_assignment_1.git
+                gpu: NVIDIA GeForce GTX 1650
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Turing
+                      cudaCores: 1024
+                      memoryTotal: "4294967296"
+                      name: NVIDIA GeForce GTX 1650
+                      uuid: GPU-6afb7695-b4a9-1738-f10f-91064d191a4d
+                host: LAPTOP-JR559U0L
+                memory:
+                    total: "6313820160"
+                os: Windows-11-10.0.22631-SP0
+                program: Untitled.ipynb
+                python: CPython 3.12.7
+                root: D:\aditya\M-Tech_IITM\SEM2\DA-DL DA6401\CS25M006_Assignment-1\da6401_assignment_1\notebooks
+                startedAt: "2026-02-27T17:00:45.517721Z"
+                writerId: lt9l94wdj2qakvj2miysj9y6807svahc
+        m: []
+        python_version: 3.12.7
+        t:
+            "1":
+                - 2
+                - 3
+                - 5
+                - 53
+            "2":
+                - 2
+                - 3
+                - 5
+                - 53
+            "3":
+                - 2
+                - 13
+            "4": 3.12.7
+            "5": 0.25.0
+            "8":
+                - 1
+                - 3
+            "12": 0.25.0
+            "13": windows-amd64

@@ -1,0 +1,47 @@
+program: train.py
+method: random
+
+metric:
+  name: val_accuracy
+  goal: maximize
+
+parameters:
+
+  wandb_project:
+    value: da6401_assignment_1
+
+  dataset:
+    value: mnist
+
+  epochs:
+    value: 10
+
+  loss:
+    value: cross_entropy
+
+  weight_init:
+    value: xavier
+
+  optimizer:
+    values: ["sgd","momentum","nag","rmsprop","adam","nadam"]
+
+  learning_rate:
+    values: [0.0001,0.0005,0.001]
+
+  batch_size:
+    values: [32,64,128]
+
+  num_layers:
+    values: [2,3]
+
+  hidden_size:
+    values:
+      - "64 64"
+      - "128 128"
+      - "128 128 128"
+
+  activation:
+    values: ["relu","tanh","sigmoid"]
+
+  weight_decay:
+    values: [0.0,0.0001]

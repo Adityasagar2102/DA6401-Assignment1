@@ -1,0 +1,108 @@
+_wandb:
+    value:
+        cli_version: 0.25.0
+        e:
+            a0pquxuysnle76ivg1hehbuykrws78x9:
+                args:
+                    - -wp
+                    - da6401_assignment_1
+                    - -d
+                    - mnist
+                    - -e
+                    - "10"
+                    - -b
+                    - "64"
+                    - -l
+                    - cross_entropy
+                    - -o
+                    - rmsprop
+                    - -lr
+                    - "0.001"
+                    - -nhl
+                    - "3"
+                    - -sz
+                    - 128 128 128
+                    - -a
+                    - relu
+                    - -w_i
+                    - xavier
+                codePath: src\train.py
+                codePathLocal: train.py
+                cpu_count: 4
+                cpu_count_logical: 8
+                cudaVersion: "13.0"
+                disk:
+                    /:
+                        total: "314571747328"
+                        used: "160242700288"
+                email: cs25m006@smail.iitm.ac.in
+                executable: D:\aditya\M-Tech_IITM\SEM2\DA-DL DA6401\CS25M006_Assignment-1\da6401_assignment_1\venv\Scripts\python.exe
+                git:
+                    commit: ef798049bfcd1db80d4ec4589f04961f33ac3552
+                    remote: https://github.com/MiRL-IITM/da6401_assignment_1.git
+                gpu: NVIDIA GeForce GTX 1650
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Turing
+                      cudaCores: 1024
+                      memoryTotal: "4294967296"
+                      name: NVIDIA GeForce GTX 1650
+                      uuid: GPU-6afb7695-b4a9-1738-f10f-91064d191a4d
+                host: LAPTOP-JR559U0L
+                memory:
+                    total: "6313820160"
+                os: Windows-10-10.0.22631-SP0
+                program: D:\aditya\M-Tech_IITM\SEM2\DA-DL DA6401\CS25M006_Assignment-1\da6401_assignment_1\src\train.py
+                python: CPython 3.10.1
+                root: D:\aditya\M-Tech_IITM\SEM2\DA-DL DA6401\CS25M006_Assignment-1\da6401_assignment_1\src
+                startedAt: "2026-03-06T15:04:15.275614Z"
+                writerId: a0pquxuysnle76ivg1hehbuykrws78x9
+        m: []
+        python_version: 3.10.1
+        t:
+            "1":
+                - 2
+                - 3
+                - 5
+                - 53
+            "2":
+                - 2
+                - 3
+                - 5
+                - 53
+            "3":
+                - 2
+                - 16
+            "4": 3.10.1
+            "5": 0.25.0
+            "8":
+                - 3
+            "12": 0.25.0
+            "13": windows-amd64
+activation:
+    value: relu
+batch_size:
+    value: 64
+dataset:
+    value: mnist
+epochs:
+    value: 10
+hidden_size:
+    value:
+        - 128
+        - 128
+        - 128
+learning_rate:
+    value: 0.001
+loss:
+    value: cross_entropy
+num_layers:
+    value: 3
+optimizer:
+    value: rmsprop
+wandb_project:
+    value: da6401_assignment_1
+weight_decay:
+    value: 0
+weight_init:
+    value: xavier

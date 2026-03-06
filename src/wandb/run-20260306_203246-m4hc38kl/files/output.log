@@ -1,0 +1,6 @@
+Epoch 1, Validation Accuracy: 0.9588
+New best model saved with F1 score: 0.9558
+Epoch 2, Validation Accuracy: 0.9602
+New best model saved with F1 score: 0.9600
+Training complete
+Best Test F1 Score: 0.9599621891392875
