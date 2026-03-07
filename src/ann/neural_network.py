@@ -98,8 +98,8 @@ class NeuralNetwork:
 
     def backward(self, y_true, y_pred):
 
-        # Ensure loss state is set
-        self.loss.forward(y_pred, y_true)
+        # # Ensure loss state is set
+        # self.loss.forward(y_pred, y_true)
 
         dz = self.loss.backward()
 
