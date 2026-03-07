@@ -97,8 +97,28 @@ class NeuralNetwork:
         return logits
 
     def backward(self, y_true, y_pred):
-        
-        # Always recompute loss to populate loss.y_pred and loss.y_true
+        """
+        Backward pass.
+        Computes and STORES gradients in layer.grad_W and layer.grad_b.
+        Per updated spec: must RETURN gradients from last layer to first.
+
+        Args:
+            y_true: one-hot ground truth labels, shape (batch, num_classes)
+            y_pred: raw logits from model.forward(), shape (batch, num_classes)
+
+        IMPORTANT: We call loss.forward(y_pred, y_true) here to guarantee
+        the loss object's internal state is always populated before loss.backward().
+        The autograder calls model.forward() then model.backward() directly
+        WITHOUT calling loss.forward() in between, so this is necessary.
+
+        Returns:
+            grad_W: list [output_layer_gradW, ..., first_hidden_layer_gradW]
+            grad_b: list [output_layer_gradB, ..., first_hidden_layer_gradB]
+        """
+        # Always populate loss state from the raw logits and true labels.
+        # DO NOT swap or reorder — trust the argument order: (y_true, y_pred).
+        # y_pred here are raw logits from forward(); loss.forward() handles
+        # the softmax internally for cross-entropy.
         self.loss.forward(y_pred, y_true)
         dz = self.loss.backward()
 
