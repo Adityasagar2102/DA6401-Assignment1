@@ -9,23 +9,39 @@ class NeuralNetwork:
 
     def __init__(self, cli_args):
         self.args = cli_args
-        self.args.optimizer = self.args.optimizer.lower()
+
+        # Safely normalize all string args to avoid AttributeError on None
+        self.args.optimizer  = str(self.args.optimizer).lower()  if self.args.optimizer  else "sgd"
+        self.args.activation = str(self.args.activation).lower() if self.args.activation else "relu"
+        self.args.loss       = str(self.args.loss).lower()       if self.args.loss       else "cross_entropy"
+        self.args.weight_init= str(self.args.weight_init).lower()if self.args.weight_init else "xavier"
+
+        # Ensure hidden_size is a list of ints
+        if isinstance(self.args.hidden_size, (int, float)):
+            self.args.hidden_size = [int(self.args.hidden_size)]
+        elif isinstance(self.args.hidden_size, str):
+            clean = self.args.hidden_size.replace('[','').replace(']','').replace(',',' ')
+            self.args.hidden_size = [int(x) for x in clean.split()]
+        else:
+            self.args.hidden_size = [int(x) for x in self.args.hidden_size]
+
+        # Ensure weight_decay exists
+        if not hasattr(self.args, 'weight_decay') or self.args.weight_decay is None:
+            self.args.weight_decay = 0.0
+
         self.layers = []
         self.activations = []
 
-        input_dim = 784
+        input_dim  = 784
         output_dim = 10
-
-        hidden_sizes = self.args.hidden_size
+        hidden_sizes   = self.args.hidden_size
         activation_name = self.args.activation
-        weight_init = self.args.weight_init
-
+        weight_init     = self.args.weight_init
         prev_dim = input_dim
 
-        # BUILD HIDDEN LAYERS
+        # ── BUILD HIDDEN LAYERS ──────────────────────────────────────────────
         for hidden_dim in hidden_sizes:
-            layer = NeuralLayer(prev_dim, hidden_dim, weight_init)
-            self.layers.append(layer)
+            self.layers.append(NeuralLayer(prev_dim, hidden_dim, weight_init))
 
             if activation_name == "relu":
                 self.activations.append(ReLU())
@@ -38,12 +54,12 @@ class NeuralNetwork:
 
             prev_dim = hidden_dim
 
-        # OUTPUT LAYER — NO activation here.
-        # Per updated spec: model must return LOGITS (raw linear combination),
-        # NOT softmax-activated outputs. Softmax is applied inside the loss function.
+        # ── OUTPUT LAYER (no activation — returns raw logits) ────────────────
+        # Per updated spec: model must return LOGITS not softmax outputs.
+        # Softmax is applied inside the loss function only.
         self.layers.append(NeuralLayer(prev_dim, output_dim, weight_init))
 
-        # LOSS FUNCTION
+        # ── LOSS FUNCTION ────────────────────────────────────────────────────
         if self.args.loss == "cross_entropy":
             self.loss = CrossEntropyLoss()
         elif self.args.loss == "mse":
@@ -51,8 +67,8 @@ class NeuralNetwork:
         else:
             raise ValueError(f"Invalid loss: {self.args.loss}")
 
-        # OPTIMIZER — updated spec: sgd, momentum, nag, rmsprop only
-        lr = self.args.learning_rate
+        # ── OPTIMIZER ────────────────────────────────────────────────────────
+        lr  = float(self.args.learning_rate)
         opt = self.args.optimizer
 
         if opt == "sgd":
@@ -68,49 +84,44 @@ class NeuralNetwork:
 
     def forward(self, X):
         """
-        Forward pass through all layers.
-        Returns RAW LOGITS from the output layer (no softmax).
-        Per updated spec: model must return logits, not softmax outputs.
+        Forward pass.
+        Returns RAW LOGITS — no softmax applied here.
+        Per updated spec: output must be linear combination, not softmax.
         """
         a = X
         for layer, activation in zip(self.layers[:-1], self.activations):
             z = layer.forward(a)
             a = activation.forward(z)
 
-        # Final layer: linear output (logits only, no softmax)
         logits = self.layers[-1].forward(a)
         return logits
 
     def backward(self, y_true, y_pred):
         """
-        Backward pass. Computes and STORES gradients in each layer's
-        self.grad_W and self.grad_b.
-
-        Per updated spec: must compute and RETURN gradients from
-        last layer to first (output layer first, input layer last).
+        Backward pass.
+        Computes and STORES gradients in layer.grad_W and layer.grad_b.
+        Per updated spec: must RETURN gradients from last layer to first.
 
         Returns:
-            grad_W: list of weight gradients [output_layer, ..., first_hidden_layer]
-            grad_b: list of bias gradients   [output_layer, ..., first_hidden_layer]
+            grad_W: list [output_layer_gradW, ..., first_hidden_layer_gradW]
+            grad_b: list [output_layer_gradB, ..., first_hidden_layer_gradB]
         """
-        # loss.backward() uses y_pred and y_true stored during loss.forward()
         dz = self.loss.backward()
 
-        # Output layer backward
+        # Output layer
         dz = self.layers[-1].backward(dz)
 
-        # Hidden layers backward (reverse order)
+        # Hidden layers in reverse
         for layer, activation in reversed(list(zip(self.layers[:-1], self.activations))):
             dz = activation.backward(dz)
             dz = layer.backward(dz)
 
-        # Apply L2 weight decay to all layer gradients
+        # L2 weight decay
         for layer in self.layers:
             if self.args.weight_decay > 0:
                 layer.grad_W += self.args.weight_decay * layer.W
 
-        # Return gradients from LAST layer to FIRST (output -> input)
-        # per updated spec requirement
+        # Return gradients from LAST layer → FIRST layer (per updated spec)
         grad_W = [layer.grad_W for layer in reversed(self.layers)]
         grad_b = [layer.grad_b for layer in reversed(self.layers)]
 
@@ -120,38 +131,30 @@ class NeuralNetwork:
         self.optimizer.step()
 
     def train(self, X_train, y_train, epochs, batch_size):
-        """Train for given number of epochs. Returns (avg_loss, grad_norm_layer1)."""
+        """Train for given epochs. Returns (avg_loss, first_layer_grad_norm)."""
         avg_loss = 0.0
         first_layer_grad_norm = 0.0
 
         for epoch in range(epochs):
-            # Shuffle training data each epoch
             indices = np.random.permutation(X_train.shape[0])
             X_train = X_train[indices]
             y_train = y_train[indices]
 
-            total_loss = 0.0
+            total_loss  = 0.0
             num_batches = 0
 
             for i in range(0, X_train.shape[0], batch_size):
                 X_batch = X_train[i:i + batch_size]
                 y_batch = y_train[i:i + batch_size]
 
-                # Forward
                 y_pred = self.forward(X_batch)
-
-                # Loss (stores y_pred and y_true for backward)
-                loss = self.loss.forward(y_pred, y_batch)
-                total_loss += loss
+                loss   = self.loss.forward(y_pred, y_batch)
+                total_loss  += loss
                 num_batches += 1
 
-                # Backward — gradients stored in each layer
                 self.backward(y_batch, y_pred)
-
-                # Track first hidden layer gradient norm
                 first_layer_grad_norm = np.linalg.norm(self.layers[0].grad_W)
 
-                # Update weights
                 self.update_weights()
 
             avg_loss = total_loss / num_batches
@@ -162,7 +165,7 @@ class NeuralNetwork:
         """Returns classification accuracy."""
         y_pred = self.forward(X)
         predictions = np.argmax(y_pred, axis=1)
-        true_labels = np.argmax(y, axis=1)
+        true_labels  = np.argmax(y, axis=1)
         return np.mean(predictions == true_labels)
 
     def get_weights(self):

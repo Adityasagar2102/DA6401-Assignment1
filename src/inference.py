@@ -7,17 +7,96 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from utils.data_loader import load_data
 from ann.neural_network import NeuralNetwork
 
-# Import the shared parser and helper from train.py
-from train import build_parser, parse_hidden_size
+
+def parse_arguments():
+    """
+    CRITICAL: This function MUST be named parse_arguments().
+    The autograder calls inference.parse_arguments() directly.
+    Same CLI as train.py per updated spec, with best config as defaults.
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Run inference on a trained MLP')
+
+    parser.add_argument("-wp", "--wandb_project",
+                        type=str,
+                        default="da6401_assignment1",
+                        help="Weights and Biases Project ID")
+
+    parser.add_argument("-d", "--dataset",
+                        type=str,
+                        default="mnist",
+                        choices=["mnist", "fashion_mnist"],
+                        help="Dataset to evaluate on")
+
+    parser.add_argument("-e", "--epochs",
+                        type=int,
+                        default=10,
+                        help="Number of training epochs")
+
+    parser.add_argument("-b", "--batch_size",
+                        type=int,
+                        default=64,
+                        help="Batch size for inference")
+
+    parser.add_argument("-l", "--loss",
+                        type=str,
+                        default="cross_entropy",
+                        choices=["cross_entropy", "mse"],
+                        help="Loss Function")
+
+    parser.add_argument("-o", "--optimizer",
+                        type=str,
+                        default="rmsprop",
+                        choices=["sgd", "momentum", "nag", "rmsprop"],
+                        help="Optimizer type")
+
+    parser.add_argument("-lr", "--learning_rate",
+                        type=float,
+                        default=0.001,
+                        help="Learning rate")
+
+    parser.add_argument("-wd", "--weight_decay",
+                        type=float,
+                        default=0.0,
+                        help="L2 regularization strength")
+
+    parser.add_argument("-nhl", "--num_layers",
+                        type=int,
+                        default=3,
+                        help="Number of hidden layers")
+
+    # CRITICAL FIX: nargs='+' matches how autograder passes hidden_size
+    parser.add_argument("-sz", "--hidden_size",
+                        nargs='+',
+                        type=int,
+                        default=[128, 128, 128],
+                        help="Hidden layer sizes e.g. --hidden_size 128 64")
+
+    parser.add_argument("-a", "--activation",
+                        type=str,
+                        default="relu",
+                        choices=["relu", "sigmoid", "tanh"],
+                        help="Activation function")
+
+    parser.add_argument("-w_i", "--weight_init",
+                        type=str,
+                        default="xavier",
+                        choices=["random", "xavier"],
+                        help="Weight initialization method")
+
+    parser.add_argument("-mp", "--model_path",
+                        type=str,
+                        default=None,
+                        help="Path to saved model weights (.npy file)")
+
+    return parser.parse_args()
 
 
 def load_model(model_path):
     """
-    Load trained model from disk.
-    Exact pattern from updated assignment instructions:
-
-        data = np.load(model_path, allow_pickle=True).item()
-        return data
+    Load trained model weights from disk.
+    Exact pattern from updated assignment instructions.
     """
     data = np.load(model_path, allow_pickle=True).item()
     return data
@@ -28,19 +107,27 @@ def get_config(model_path):
     model_dir = os.path.dirname(os.path.abspath(model_path))
     config_path = os.path.join(model_dir, "best_config.json")
 
+    # Fallback: look in same directory as inference.py
     if not os.path.exists(config_path):
-        # fallback: look in same dir as inference.py
-        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "best_config.json")
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "best_config.json"
+        )
 
     with open(config_path, "r") as f:
         config = json.load(f)
 
-    config["hidden_size"] = parse_hidden_size(config["hidden_size"])
+    # Ensure hidden_size is a list of ints
+    if isinstance(config.get("hidden_size"), str):
+        raw = config["hidden_size"].replace('[', '').replace(']', '').replace(',', ' ')
+        config["hidden_size"] = [int(x) for x in raw.split()]
+    elif not isinstance(config.get("hidden_size"), list):
+        config["hidden_size"] = list(config["hidden_size"])
+
     return config
 
 
 def evaluate_model(model, X_test, y_test):
-    """Run forward pass and compute all metrics."""
+    """Run forward pass and compute Accuracy, Precision, Recall, F1."""
     # Model returns raw LOGITS (not softmax) per updated spec
     logits = model.forward(X_test)
 
@@ -65,29 +152,24 @@ def evaluate_model(model, X_test, y_test):
 
 
 def main():
-    # Same CLI as train.py per updated instructions
-    parser = build_parser()
-    args = parser.parse_args()
-
-    args.hidden_size = parse_hidden_size(args.hidden_size)
+    args = parse_arguments()
 
     # Determine model path
     if args.model_path is None:
-        # Default: look for best_model.npy next to this script
         args.model_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "best_model.npy"
         )
 
-    # Load config from json (overrides CLI defaults with saved best config)
+    # Load config from saved best_config.json
     config = get_config(args.model_path)
     cli = Namespace(**config)
 
-    # Build model and load weights using the exact pattern from updated spec
+    # Build model and load weights (exact pattern from updated spec)
     model = NeuralNetwork(cli)
     weights = load_model(args.model_path)
     model.set_weights(weights)
 
-    # Load test data
+    # Load test data using dataset from CLI (allows evaluating on different dataset)
     _, _, _, _, X_test, y_test = load_data(args.dataset)
 
     results = evaluate_model(model, X_test, y_test)

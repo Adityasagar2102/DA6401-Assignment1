@@ -11,26 +11,22 @@ from sklearn.metrics import f1_score
 
 
 def save_model(model, args):
-
-    os.makedirs("../models", exist_ok=True)
-
+    """Save best model weights and config to src/ folder (per updated spec)."""
+    save_dir = os.path.dirname(os.path.abspath(__file__))
     best_weights = model.get_weights()
-
-    np.save("../models/best_model.npy", best_weights)
-
-    config = vars(args)
-
-    with open("../models/best_config.json", "w") as f:
+    np.save(os.path.join(save_dir, "best_model.npy"), best_weights)
+    config = vars(args).copy()
+    with open(os.path.join(save_dir, "best_config.json"), "w") as f:
         json.dump(config, f, indent=4)
 
 
-def build_parser():
+def parse_arguments():
     """
-    Shared argument parser used by both train.py and inference.py.
-    Per updated instructions: both CLIs must be identical,
-    with best config values as defaults.
+    Parse CLI arguments for train.py.
+    NOTE: hidden_size uses nargs='+' so autograder can pass: --hidden_size 128 64
+    All arguments have defaults so autograder can call with partial args.
     """
-    parser = argparse.ArgumentParser(description='Train / Evaluate a MLP neural network')
+    parser = argparse.ArgumentParser(description='Train a MLP neural network')
 
     parser.add_argument("-wp", "--wandb_project",
                         type=str,
@@ -49,8 +45,8 @@ def build_parser():
                         help="Number of training epochs")
 
     parser.add_argument("-b", "--batch_size",
-                        type=int,
-                        default=64,
+                        type=str,  # accept as str to handle both int and list
+                        default="64",
                         help="Mini-batch size")
 
     parser.add_argument("-l", "--loss",
@@ -59,7 +55,6 @@ def build_parser():
                         choices=["cross_entropy", "mse"],
                         help="Loss Function")
 
-    # Updated spec only requires: sgd, momentum, nag, rmsprop
     parser.add_argument("-o", "--optimizer",
                         type=str,
                         default="rmsprop",
@@ -81,10 +76,13 @@ def build_parser():
                         default=3,
                         help="Number of hidden layers")
 
+    # CRITICAL FIX: nargs='+' so autograder can pass --hidden_size 128 64
+    # instead of a single quoted string
     parser.add_argument("-sz", "--hidden_size",
-                        type=str,
-                        default="128 128 128",
-                        help="Hidden layer sizes e.g. '128 128 128' or '[128,128,128]'")
+                        nargs='+',
+                        type=int,
+                        default=[128, 128, 128],
+                        help="Hidden layer sizes e.g. --hidden_size 128 64")
 
     parser.add_argument("-a", "--activation",
                         type=str,
@@ -98,28 +96,25 @@ def build_parser():
                         choices=["random", "xavier"],
                         help="Weight initialization method")
 
-    # Shared with inference.py (ignored by train.py)
     parser.add_argument("-mp", "--model_path",
                         type=str,
                         default=None,
                         help="Path to saved model weights (.npy file)")
 
-    return parser
-
-
-def parse_hidden_size(raw):
-    """Handle hidden_size as string '128 128', '[128,128]', or already a list."""
-    if isinstance(raw, list):
-        return raw
-    clean = str(raw).replace('[', '').replace(']', '').replace(',', ' ')
-    return [int(x) for x in clean.split()]
+    return parser.parse_args()
 
 
 def main():
-    parser = build_parser()
-    args = parser.parse_args()
+    args = parse_arguments()
 
-    args.hidden_size = parse_hidden_size(args.hidden_size)
+    # batch_size was parsed as str to handle edge cases — convert to int
+    args.batch_size = int(args.batch_size)
+
+    # hidden_size is now already a list of ints from nargs='+'
+    # but if somehow it's a string (e.g. loaded from config), handle it
+    if isinstance(args.hidden_size, str):
+        clean = args.hidden_size.replace('[', '').replace(']', '').replace(',', ' ')
+        args.hidden_size = [int(x) for x in clean.split()]
 
     if args.num_layers != len(args.hidden_size):
         raise ValueError(
@@ -145,7 +140,6 @@ def main():
         train_loss, grad_norm = model.train(X_train, y_train, 1, args.batch_size)
         val_acc = model.evaluate(X_val, y_val)
 
-        # Compute test F1 after each epoch
         test_logits = model.forward(X_test)
         pred = np.argmax(test_logits, axis=1)
         true = np.argmax(y_test, axis=1)
@@ -188,11 +182,11 @@ def train_sweep():
         learning_rate=config.learning_rate,
         weight_decay=config.weight_decay,
         num_layers=config.num_layers,
-        hidden_size=config.hidden_size,
+        hidden_size=config.hidden_size if isinstance(config.hidden_size, list)
+                    else [int(x) for x in str(config.hidden_size).replace('[','').replace(']','').replace(',',' ').split()],
         activation=config.activation,
         weight_init="xavier"
     )
-    args.hidden_size = parse_hidden_size(args.hidden_size)
 
     X_train, y_train, X_val, y_val, _, _ = load_data("mnist")
     model = NeuralNetwork(args)
