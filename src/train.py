@@ -139,7 +139,14 @@ def main():
         )
 
     try:
-        wandb.init(project=args.wandb_project, config=vars(args))
+        wandb.init(
+            project=args.wandb_project,
+            config=vars(args),
+            settings=wandb.Settings(
+                _disable_stats=True,
+                init_timeout=30,   # don't hang forever if server unreachable
+            )
+        )
         use_wandb = True
     except Exception as e:
         print(f"W&B init failed ({e}), continuing without logging.")
@@ -165,15 +172,21 @@ def main():
         print(f"Epoch {epoch + 1}/{args.epochs} | "
               f"Loss: {train_loss:.4f} | Val Acc: {val_acc:.4f} | Test F1: {test_f1:.4f}")
 
+        # W&B logging is fully isolated — any failure MUST NOT affect training
         if use_wandb:
-            wandb.log({
-                "epoch": epoch + 1,
-                "train_loss": train_loss,
-                "val_accuracy": val_acc,
-                "test_f1": test_f1,
-                "grad_norm_layer1": grad_norm
-            })
+            try:
+                wandb.log({
+                    "epoch": epoch + 1,
+                    "train_loss": train_loss,
+                    "val_accuracy": val_acc,
+                    "test_f1": test_f1,
+                    "grad_norm_layer1": grad_norm
+                })
+            except Exception as wb_err:
+                print(f"  [W&B log failed: {wb_err}] — continuing training.")
+                use_wandb = False  # disable for remaining epochs
 
+        # Save best model — this is independent of W&B
         if test_f1 > best_f1:
             best_f1 = test_f1
             save_model(model, args)
@@ -182,7 +195,10 @@ def main():
     print(f"\nTraining complete. Best Test F1: {best_f1:.4f}")
 
     if use_wandb:
-        wandb.finish()
+        try:
+            wandb.finish()
+        except Exception:
+            pass
 
 
 def train_sweep():
