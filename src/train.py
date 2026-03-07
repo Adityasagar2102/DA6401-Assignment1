@@ -12,15 +12,14 @@ from sklearn.metrics import f1_score
 
 def save_model(model, args):
 
-    os.makedirs("../models", exist_ok=True)
-
     best_weights = model.get_weights()
 
-    np.save("../models/best_model.npy", best_weights)
+    # save inside src folder
+    np.save("best_model.npy", best_weights)
 
     config = vars(args)
 
-    with open("../models/best_config.json", "w") as f:
+    with open("best_config.json", "w") as f:
         json.dump(config, f, indent=4)
 
 
