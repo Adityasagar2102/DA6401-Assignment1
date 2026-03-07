@@ -1,8 +1,8 @@
 {
-    "wandb_project": "da6401_assignment_1",
+    "wandb_project": "DA6401_assignment_1",
     "dataset": "mnist",
-    "epochs": 10,
-    "batch_size": 64,
+    "epochs": 15,
+    "batch_size": 32,
     "loss": "cross_entropy",
     "optimizer": "rmsprop",
     "learning_rate": 0.001,

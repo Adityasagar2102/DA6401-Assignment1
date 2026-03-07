@@ -103,14 +103,32 @@ def load_model(model_path):
 
 
 def get_config(model_path):
-    """Locate best_config.json next to the model file."""
-    model_dir = os.path.dirname(os.path.abspath(model_path))
-    config_path = os.path.join(model_dir, "best_config.json")
+    """
+    Locate best_config.json.
+    Search order:
+      1. Same directory as the model file (models/ or src/)
+      2. src/ directory (same as inference.py)
+      3. models/ directory (autograder default location)
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))  # src/
+    repo_root   = os.path.dirname(script_dir)                 # project root
+    models_dir  = os.path.join(repo_root, "models")           # models/
 
-    # Fallback: look in same directory as inference.py
-    if not os.path.exists(config_path):
-        config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "best_config.json"
+    candidates = []
+    if model_path:
+        candidates.append(os.path.join(os.path.dirname(os.path.abspath(model_path)), "best_config.json"))
+    candidates.append(os.path.join(script_dir, "best_config.json"))
+    candidates.append(os.path.join(models_dir, "best_config.json"))
+
+    config_path = None
+    for path in candidates:
+        if os.path.exists(path):
+            config_path = path
+            break
+
+    if config_path is None:
+        raise FileNotFoundError(
+            f"best_config.json not found. Searched:\n" + "\n".join(f"  {p}" for p in candidates)
         )
 
     with open(config_path, "r") as f:
@@ -118,10 +136,14 @@ def get_config(model_path):
 
     # Ensure hidden_size is a list of ints
     if isinstance(config.get("hidden_size"), str):
-        raw = config["hidden_size"].replace('[', '').replace(']', '').replace(',', ' ')
+        raw = config["hidden_size"].replace("[", "").replace("]", "").replace(",", " ")
         config["hidden_size"] = [int(x) for x in raw.split()]
+    elif isinstance(config.get("hidden_size"), (int, float)):
+        config["hidden_size"] = [int(config["hidden_size"])]
     elif not isinstance(config.get("hidden_size"), list):
         config["hidden_size"] = list(config["hidden_size"])
+    else:
+        config["hidden_size"] = [int(x) for x in config["hidden_size"]]
 
     return config
 
@@ -157,14 +179,25 @@ def evaluate_model(model, X_test, y_test):
 def main():
     args = parse_arguments()
 
-    # Determine model path
+    # Determine model path — search src/ then models/ if not specified
     if args.model_path is None or not os.path.exists(args.model_path):
-        # Try default location relative to this script
-        args.model_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "best_model.npy"
-        )
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        repo_root  = os.path.dirname(script_dir)
+        candidates = [
+            os.path.join(script_dir, "best_model.npy"),          # src/best_model.npy
+            os.path.join(repo_root, "models", "best_model.npy"), # models/best_model.npy
+        ]
+        for path in candidates:
+            if os.path.exists(path):
+                args.model_path = path
+                break
+        else:
+            raise FileNotFoundError(
+                f"best_model.npy not found. Searched:\n" +
+                "\n".join(f"  {p}" for p in candidates)
+            )
 
-    # Load config from saved best_config.json
+    # Load config from saved best_config.json (searches same dir as model, then fallbacks)
     config = get_config(args.model_path)
     cli = Namespace(**config)
 
