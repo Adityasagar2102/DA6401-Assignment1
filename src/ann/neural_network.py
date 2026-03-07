@@ -97,33 +97,26 @@ class NeuralNetwork:
         return logits
 
     def backward(self, y_true, y_pred):
-        """
-        Backward pass.
-        Computes and STORES gradients in layer.grad_W and layer.grad_b.
-        Per updated spec: must RETURN gradients from last layer to first.
 
-        Returns:
-            grad_W: list [output_layer_gradW, ..., first_hidden_layer_gradW]
-            grad_b: list [output_layer_gradB, ..., first_hidden_layer_gradB]
-        """
+        # Gradient of loss w.r.t logits
         dz = self.loss.backward()
 
-        # Output layer
+        # Output layer backward
         dz = self.layers[-1].backward(dz)
 
-        # Hidden layers in reverse
+        # Hidden layers backward (reverse order)
         for layer, activation in reversed(list(zip(self.layers[:-1], self.activations))):
             dz = activation.backward(dz)
             dz = layer.backward(dz)
 
-        # L2 weight decay
+        # Apply L2 regularization if enabled
         for layer in self.layers:
             if self.args.weight_decay > 0:
                 layer.grad_W += self.args.weight_decay * layer.W
 
-        # Return gradients from LAST layer → FIRST layer (per updated spec)
-        grad_W = [layer.grad_W for layer in reversed(self.layers)]
-        grad_b = [layer.grad_b for layer in reversed(self.layers)]
+        # Collect gradients in SAME order as layers
+        grad_W = [layer.grad_W for layer in self.layers]
+        grad_b = [layer.grad_b for layer in self.layers]
 
         return grad_W, grad_b
 
