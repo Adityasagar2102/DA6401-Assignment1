@@ -97,26 +97,27 @@ class NeuralNetwork:
         return logits
 
     def backward(self, y_true, y_pred):
-
-        # Gradient of loss w.r.t logits
+        
+        # Always recompute loss to populate loss.y_pred and loss.y_true
+        self.loss.forward(y_pred, y_true)
         dz = self.loss.backward()
 
-        # Output layer backward
+        # Output layer
         dz = self.layers[-1].backward(dz)
 
-        # Hidden layers backward (reverse order)
+        # Hidden layers in reverse
         for layer, activation in reversed(list(zip(self.layers[:-1], self.activations))):
             dz = activation.backward(dz)
             dz = layer.backward(dz)
 
-        # Apply L2 regularization if enabled
+        # L2 weight decay
         for layer in self.layers:
             if self.args.weight_decay > 0:
                 layer.grad_W += self.args.weight_decay * layer.W
 
-        # Collect gradients in SAME order as layers
-        grad_W = [layer.grad_W for layer in self.layers]
-        grad_b = [layer.grad_b for layer in self.layers]
+        # Return gradients from LAST layer → FIRST layer (per updated spec)
+        grad_W = [layer.grad_W for layer in reversed(self.layers)]
+        grad_b = [layer.grad_b for layer in reversed(self.layers)]
 
         return grad_W, grad_b
 
