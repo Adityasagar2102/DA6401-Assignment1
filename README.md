@@ -76,27 +76,25 @@ All experiments are tracked using **Weights & Biases (W&B)**.
 
 ## Project Structure
 
-da6401_assignment_1
-│
-├── src
-│ ├── train.py # Training script
-│ ├── inference.py # Model evaluation
-│ ├── gradient_check.py # Gradient verification
-│
-│ ├── ann
-│ │ ├── neural_network.py # Neural network implementation
-│ │ ├── neural_layer.py # Dense layer implementation
-│ │ ├── activations.py # Activation functions
-│ │ ├── objective_functions.py # Loss functions
-│ │ ├── optimizers.py # Optimization algorithms
-│
-│ ├── utils
-│ │ └── data_loader.py # Dataset loader
-│
-├── models
-│ ├── best_model.npy # Saved model weights
-│ └── best_config.json # Configuration of best model
-│
+````text
+da6401_assignment_1/
+├── src/
+│   ├── train.py                # Training script
+│   ├── inference.py            # Model evaluation
+│   ├── gradient_check.py       # Gradient verification
+|   ├── best_model.npy          # Saved model weights for autograde
+│   └── best_config.json        # Configuration of best model for autograde
+│   ├── ann/
+│   │   ├── neural_network.py   # Neural network implementation
+│   │   ├── neural_layer.py     # Dense layer implementation
+│   │   ├── activations.py      # Activation functions
+│   │   ├── objective_functions.py # Loss functions
+│   │   └── optimizers.py       # Optimization algorithms
+│   └── utils/
+│       └── data_loader.py      # Dataset loader
+├── models/
+│   ├── best_model.npy          # Saved model weights
+│   └── best_config.json        # Configuration of best model
 ├── README.md
 └── requirements.txt
 
@@ -109,7 +107,7 @@ Clone the repository:
 ```bash
 git clone <your_repo_link>
 cd da6401_assignment_1
-```
+````
 
 Create and activate virtual environment (optional but recommended):
 
