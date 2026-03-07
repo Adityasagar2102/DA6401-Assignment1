@@ -158,7 +158,8 @@ def main():
     args = parse_arguments()
 
     # Determine model path
-    if args.model_path is None:
+    if args.model_path is None or not os.path.exists(args.model_path):
+        # Try default location relative to this script
         args.model_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "best_model.npy"
         )
