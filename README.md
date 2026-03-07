@@ -76,7 +76,7 @@ All experiments are tracked using **Weights & Biases (W&B)**.
 
 ## Project Structure
 
-````text
+```text
 da6401_assignment_1/
 ├── src/
 │   ├── train.py                # Training script
@@ -97,6 +97,7 @@ da6401_assignment_1/
 │   └── best_config.json        # Configuration of best model
 ├── README.md
 └── requirements.txt
+```
 
 ---
 
@@ -107,7 +108,7 @@ Clone the repository:
 ```bash
 git clone <your_repo_link>
 cd da6401_assignment_1
-````
+```
 
 Create and activate virtual environment (optional but recommended):
 
