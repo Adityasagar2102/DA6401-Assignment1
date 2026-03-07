@@ -17,19 +17,25 @@ class CrossEntropyLoss:
     #     return loss
 
     def forward(self, logits, y_true):
+
+        # numerical stability
+        exp_scores = np.exp(logits - np.max(logits, axis=1, keepdims=True))
+        self.probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+
         self.y_true = y_true
 
-        exp = np.exp(logits - np.max(logits, axis=1, keepdims=True))
-        self.y_pred = exp / np.sum(exp, axis=1, keepdims=True)
-
-        loss = -np.sum(y_true * np.log(self.y_pred + 1e-12)) / y_true.shape[0]
+        loss = -np.sum(y_true * np.log(self.probs + 1e-9)) / logits.shape[0]
 
         return loss
 
 
     def backward(self):
-        # dz = y_pred - y_true
-        return (self.y_pred - self.y_true) / self.y_true.shape[0]
+
+        batch_size = self.y_true.shape[0]
+
+        dz = (self.probs - self.y_true) / batch_size
+
+        return dz
 
 
 class MSELoss:

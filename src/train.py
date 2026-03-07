@@ -11,12 +11,16 @@ from sklearn.metrics import f1_score
 
 
 def save_model(model, args):
-    """Save best model weights and config to src/ folder (per updated spec)."""
-    save_dir = os.path.dirname(os.path.abspath(__file__))
+
+    os.makedirs("../models", exist_ok=True)
+
     best_weights = model.get_weights()
-    np.save(os.path.join(save_dir, "best_model.npy"), best_weights)
-    config = vars(args).copy()
-    with open(os.path.join(save_dir, "best_config.json"), "w") as f:
+
+    np.save("../models/best_model.npy", best_weights)
+
+    config = vars(args)
+
+    with open("../models/best_config.json", "w") as f:
         json.dump(config, f, indent=4)
 
 

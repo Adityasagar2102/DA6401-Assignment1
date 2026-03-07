@@ -30,14 +30,15 @@ class NeuralLayer:
         z = np.dot(x, self.W) + self.b
         return z
 
-
     def backward(self, dz):
-        # dw = xT dz
-        # db = sum(dz)
-        # dx = dzwT
-        self.grad_W = np.dot(self.input.T, dz)
-        self.grad_b = np.sum(dz, axis=0, keepdims=True)
+
+        batch_size = self.input.shape[0]
+
+        self.grad_W = np.dot(self.input.T, dz) / batch_size
+        self.grad_b = np.sum(dz, axis=0, keepdims=True) / batch_size
+
         dx = np.dot(dz, self.W.T)
+
         return dx
 
 
