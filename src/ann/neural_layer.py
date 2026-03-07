@@ -19,8 +19,8 @@ class NeuralLayer:
             raise ValueError("Invalid weight initialization method")
         # self.b = np.zeros((1, output_dim))
 
-        self.grad_W = None
-        self.grad_b = None
+        self.grad_W = np.zeros((input_dim, output_dim))
+        self.grad_b = np.zeros((1, output_dim))
         self.input = None
 
     def forward(self, x):
