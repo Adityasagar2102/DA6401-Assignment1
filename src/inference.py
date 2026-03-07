@@ -127,12 +127,15 @@ def get_config(model_path):
 
 
 def evaluate_model(model, X_test, y_test):
-    """Run forward pass and compute Accuracy, Precision, Recall, F1."""
+    """Run forward pass and compute Accuracy, Precision, Recall, F1.
+    y_test can be integer labels (N,) or one-hot (N, C) — both handled.
+    """
     # Model returns raw LOGITS (not softmax) per updated spec
     logits = model.forward(X_test)
 
     predictions = np.argmax(logits, axis=1)
-    true_labels = np.argmax(y_test, axis=1)
+    # Handle both integer and one-hot y_test
+    true_labels = y_test.astype(int) if y_test.ndim == 1 else np.argmax(y_test, axis=1)
 
     accuracy  = accuracy_score(true_labels, predictions)
     precision = precision_score(true_labels, predictions, average="macro", zero_division=0)

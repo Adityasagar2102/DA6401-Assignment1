@@ -11,15 +11,12 @@ from sklearn.metrics import f1_score
 
 
 def save_model(model, args):
-
+    """Save best model weights and config to src/ folder (per updated spec)."""
+    save_dir = os.path.dirname(os.path.abspath(__file__))
     best_weights = model.get_weights()
-
-    # save inside src folder
-    np.save("best_model.npy", best_weights)
-
-    config = vars(args)
-
-    with open("best_config.json", "w") as f:
+    np.save(os.path.join(save_dir, "best_model.npy"), best_weights)
+    config = vars(args).copy()
+    with open(os.path.join(save_dir, "best_config.json"), "w") as f:
         json.dump(config, f, indent=4)
 
 
@@ -145,7 +142,8 @@ def main():
 
         test_logits = model.forward(X_test)
         pred = np.argmax(test_logits, axis=1)
-        true = np.argmax(y_test, axis=1)
+        # y_test is now integer labels (from updated data_loader)
+        true = y_test if y_test.ndim == 1 else np.argmax(y_test, axis=1)
         test_f1 = f1_score(true, pred, average="macro")
 
         print(f"Epoch {epoch + 1}/{args.epochs} | "
