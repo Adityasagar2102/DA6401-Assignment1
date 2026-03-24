@@ -15,7 +15,7 @@
 
 ## Weights & Biases Report
 
-- **Public Report Link**: [W&B Report](https://wandb.ai/cs25m006-iit-madras/DA6401-Assignment-1/reports/DA6401-Assignment-1-Neural-Network-Experiments--VmlldzoxNjA1NTAwMA)
+- **Public Report Link**: [W&B Report](https://wandb.ai/cs25m006-iit-madras/DA6401-Assignment-1/reports/DA6401-Assignment-1-Neural-Network-Experiments--VmlldzoxNjA1NTAwMA?accessToken=ar1htd4ggl6lk7w5zx5a8vdmcyhvsa9ax34oncrlsdz1dz4rsd8zh012n5uvkyur)
 
 ## Project Overview
 
